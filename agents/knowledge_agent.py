@@ -1,12 +1,13 @@
 from langchain_core.tools import create_retriever_tool
 from langchain_qdrant import QdrantVectorStore
 
-from llms.llm import embedding_model, llm
-from prompts.prompt import rag_fusion_prompt, rag_prompt
+from llms.llm import embedding_model, get_llm
+llm=get_llm()
+from prompts.prompt import rag_fusion_prompt, rag_prompt, rag_fusion_prompt_3,rag_prompt_3
 
 qdrant_retriever = QdrantVectorStore.from_existing_collection(
     embedding=embedding_model,
-    collection_name='medicinal_chemistry_docs',
+    collection_name='medicinal_chemistry_docs121213',
     url=f"http://localhost:6333",
 
 ).as_retriever(search_kwargs={"k": 3})
@@ -24,7 +25,7 @@ from operator import itemgetter
 from langchain.load import dumps, loads
 from langchain.prompts import ChatPromptTemplate
 
-prompt_rag_fusion = ChatPromptTemplate.from_template(rag_fusion_prompt)
+prompt_rag_fusion = ChatPromptTemplate.from_template(rag_fusion_prompt_3)
 
 from langchain_core.output_parsers import StrOutputParser
 
@@ -60,7 +61,7 @@ def reciprocal_rank_fusion(results: list[list], k=3):
 
 retrieval_chain_rag_fusion = generate_queries | qdrant_retriever.map() | reciprocal_rank_fusion
 
-prompt = ChatPromptTemplate.from_template(rag_prompt)
+prompt = ChatPromptTemplate.from_template(rag_prompt_3)
 
 final_rag_chain = (
         {"context": retrieval_chain_rag_fusion,

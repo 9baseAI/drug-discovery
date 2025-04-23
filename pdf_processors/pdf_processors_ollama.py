@@ -1,3 +1,4 @@
+import ollama
 import glob
 import os
 from typing import List, Dict
@@ -10,18 +11,20 @@ from qdrant_client import QdrantClient
 from qdrant_client.models import PointStruct, VectorParams
 from tqdm import tqdm
 
-from llms.llm import embedding_model
+
+# Initialize the embedding function
+def embed_text(prompt: str) :
+    response = ollama.embeddings(model='nomic-embed-text', prompt=prompt)
+    return response['embedding']
 
 
 class PDFProcessor:
     def __init__(
             self,
-            embedding_model: OpenAIEmbeddings,
             qdrant_client: QdrantClient,
             collection_name: str,
             text_splitter: RecursiveCharacterTextSplitter,
     ):
-        self.embedding_model = embedding_model
         self.qdrant_client = qdrant_client
         self.collection_name = collection_name
         self.text_splitter = text_splitter
@@ -34,7 +37,7 @@ class PDFProcessor:
         self.qdrant_client.recreate_collection(
             collection_name=self.collection_name,
             vectors_config=VectorParams(
-                size=1536,  # Ensure this matches the embedding size
+                size=768,  # Adjust this to match the embedding size of nomic-embed-text
                 distance="Cosine",
             ),
         )
@@ -77,10 +80,10 @@ class PDFProcessor:
             splits.extend(split_docs)
         return splits
 
-    def insert_documents(self, documents: List[Dict], embedder: OpenAIEmbeddings):
+    def insert_documents(self, documents: List[Dict]):
         points = []
         for idx, doc in enumerate(tqdm(documents, desc="Embedding and preparing points")):
-            vector = embedder.embed_query(doc['content'])  # Generate embedding
+            vector = embed_text(doc['content'])  # Generate embedding using Ollama
             point = PointStruct(
                 id=idx,  # Unique ID for each chunk
                 vector=vector,
@@ -88,7 +91,6 @@ class PDFProcessor:
                     'source': doc['source'],
                     'page_number': doc['page_number'],
                     'page_content': doc['content'],
-
                 }
             )
             points.append(point)
@@ -129,18 +131,13 @@ class PDFProcessor:
             print("No documents to insert. Exiting.")
             return
 
-        # Step 5: Embed and upload to Qdrant
-        self.insert_documents(dict_documents, self.embedding_model)
-
-
+        # Embed and upload to Qdrant
+        self.insert_documents(dict_documents)
 if __name__ == "__main__":
-    base_url = ""
-    model_name = "gpt-4o-mini"
-    openai_api_key = ""
     qdrant_host = "localhost"
     qdrant_port = 6333
 
-    folder_path = "."
+    folder_path = "pdfs/"
 
     qdrant_client = QdrantClient(host=qdrant_host, port=qdrant_port)
 
@@ -152,9 +149,8 @@ if __name__ == "__main__":
     )
 
     pdf_processor = PDFProcessor(
-        embedding_model=embedding_model,
         qdrant_client=qdrant_client,
-        collection_name='medicinal_chemistry_docs',
+        collection_name='medicinal_chemistry_docs121213',
         text_splitter=text_splitter,
     )
 

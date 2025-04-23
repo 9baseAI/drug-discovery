@@ -1,5 +1,6 @@
 
 base_work/*
+notebook/*
 knowledge_resource/Katya_Tsaioun,_Steven_A_Kates_ADMET_for_Medicinal_Chemists_A_Practical.pdf
 knowledge_resource/Urban,_Laszlo_Wang,_Jianling_Predictive_ADMET_Integrated_Approaches.pdf
 # User-specific stuff
@@ -8,7 +9,7 @@ knowledge_resource/Urban,_Laszlo_Wang,_Jianling_Predictive_ADMET_Integrated_Appr
 .idea/**/usage.statistics.xml
 .idea/**/dictionaries
 .idea/**/shelf
-
+.vscode
 # AWS User-specific
 .idea/**/aws.xml
 

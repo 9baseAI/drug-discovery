@@ -10,10 +10,10 @@ from langgraph.prebuilt import ToolNode
 from langgraph.prebuilt import tools_condition
 from typing_extensions import TypedDict
 
-from llms.llm import llm
-from prompts.prompt import r_and_d_prompt
+from llms.llm import get_llm
+from prompts.prompt import r_and_d_prompt, final
 from tools.tool import admet_tools
-
+llm=get_llm()
 
 class State(TypedDict):
     messages: Annotated[list[AnyMessage], add_messages]
@@ -78,7 +78,7 @@ class Assistant:
 assistant_prompt = ChatPromptTemplate.from_messages(
     [
         (
-            "system", r_and_d_prompt
+            "system", final
 
         ),
         ("placeholder", "{messages}"),
